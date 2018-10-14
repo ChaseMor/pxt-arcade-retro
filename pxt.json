@@ -1,18 +1,10 @@
 {
-    "name": "pxt-arcade-retro",
-    "version": "0.0.0",
-    "description": "",
-    "dependencies": {
-        "device": "*"
-    },
+    "name": "retro",
+    "description": "Retro Arcade Gaming",
     "files": [
-        "README.md",
-        "main.ts",
         "retro.ts"
     ],
-    "testFiles": [
-        "test.ts"
-    ],
-    "public": false,
-    "installedVersion": "workspace:1966ffa0-8eb6-41f2-00c5-866b8e075c16"
+    "public": true,
+    "dependencies": {
+    }
 }
