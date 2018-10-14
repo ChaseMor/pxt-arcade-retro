@@ -7,11 +7,12 @@
     },
     "files": [
         "README.md",
-        "main.ts"
+        "main.ts",
+        "retro.ts"
     ],
     "testFiles": [
         "test.ts"
     ],
     "public": false,
-    "additionalFilePaths": []
+    "installedVersion": "workspace:1966ffa0-8eb6-41f2-00c5-866b8e075c16"
 }
