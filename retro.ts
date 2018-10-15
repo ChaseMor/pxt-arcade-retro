@@ -8,7 +8,7 @@ namespace retro {
     export let X_VELOC: number = 80;
     export let Y_VELOC: number = 50;
 
-
+    // May remove these. Functionality is already in place for sprites
     export enum PlayerProperties {
         //% block="x (horizontal position)"
         X = 1,
@@ -89,10 +89,15 @@ namespace retro {
      * Set the scene for the game
      */
     //% weight=100
-    //% blockId=retrosetscene block="set scene to %img=background_image_picker"
-    export function setScene(img: Image) {
-        const scene = game.currentScene();
-        scene.background.image = img;
+    //% blockId=retrosetscene p
+    //% block="set scene to %scene1=background_image_picker ||, %scene2=background_image_picker"
+    //% inlineInputMode=inline
+    //% expandableArgumentMode=toggle
+    export function setScene(scene1: Image, scene2?: Image) {
+        const sc = game.currentScene();
+        let camera: scene.RetroCamera = new scene.RetroCamera(scene2 ? 2 : 1);
+        sc.camera = camera;
+        sc.background = new scene.RetroBackground(camera, scene2 ? [scene1, scene2] : [scene1]);
         retroEnabled = true;
     }
 
@@ -104,6 +109,8 @@ namespace retro {
     //% blockId=retrocreateplayer block="create player with image %sprite=screen_image_picker"
     export function setCreatePlayer(img: Image) {
         player = new Player(img);
+        const sc = game.currentScene();
+        sc.camera.sprite = player.sprite;
 
     }
 
@@ -211,4 +218,3 @@ namespace retro {
         }
     }
 }
-
