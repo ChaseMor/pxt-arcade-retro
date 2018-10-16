@@ -93,11 +93,11 @@ namespace retro {
     //% block="set scene to %scene1=background_image_picker ||, %scene2=background_image_picker"
     //% inlineInputMode=inline
     //% expandableArgumentMode=toggle
-    export function setScene(scene1: Image, scene2?: Image) {
+    export function setScene(scenes: Image[]) {
         const sc = game.currentScene();
-        let camera: scene.RetroCamera = new scene.RetroCamera(scene2 ? 2 : 1);
+        let camera: scene.RetroCamera = new scene.RetroCamera(scenes.length);
         sc.camera = camera;
-        sc.background = new scene.RetroBackground(camera, scene2 ? [scene1, scene2] : [scene1]);
+        sc.background = new scene.RetroBackground(camera, scenes);
         retroEnabled = true;
     }
 
