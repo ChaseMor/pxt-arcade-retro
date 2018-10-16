@@ -8,5 +8,5 @@
     "public": true,
     "dependencies": {
         "core": "file:../controller"
-    },
+    }
 }
