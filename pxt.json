@@ -3,7 +3,9 @@
     "description": "Retro Arcade Gaming",
     "files": [
         "retro.ts",
-        "retroscenes.ts"
+        "retroscenes.ts",
+        "player.ts",
+        "enemy.ts"
     ],
     "public": true,
     "dependencies": {

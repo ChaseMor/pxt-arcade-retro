@@ -36,45 +36,6 @@ namespace retro {
         BOTTOM
     }
 
-    class Player {
-
-        sprite: Sprite;
-
-        constructor(img: Image) {
-            this.sprite = sprites.create(img);
-            game.currentScene().eventContext.registerFrameHandler(19, () => {
-                this.sprite.vx = 0;
-
-                if (controller.left.isPressed()) {
-                    this.sprite.vx = -X_VELOC;
-                }
-
-                if (controller.right.isPressed()) {
-                    this.sprite.vx = X_VELOC;
-                }
-
-                this.sprite.vy = 0;
-
-                // Weird Occilatating bug if both up and down are pressed
-                if (controller.down.isPressed() && !controller.up.isPressed()) {
-                    this.sprite.vy = Y_VELOC;
-                }
-                if (this.sprite.y > HORIZON_LINE) {
-                    if (controller.up.isPressed()) {
-                        this.sprite.vy = -Y_VELOC;
-                    }
-                } else {
-                    this.sprite.y = HORIZON_LINE;
-                }
-            });
-            this.sprite.setFlag(SpriteFlag.StayInScreen, true);
-        }
-
-        setSpriteImage(img: Image) {
-            this.sprite.setImage(img);
-        }
-
-    }
 
     enum SpriteKind {
         Player = 0,
@@ -82,15 +43,43 @@ namespace retro {
     }
 
 
+    
+    interface Handler {
+        handler: (player: Player, enemy: Enemy) => void;
+    }
+    
+
+    controller.A.onEvent(ControllerButtonEvent.Pressed, function() {
+        if (!player.attacking) {
+            control.runInParallel(() => player.attack());
+        }
+    });
+
+
     let retroEnabled: boolean;
     export let player: Player;
+    export let enemies: Enemy[];
+    export let _overrideRoam = false;
+    let _onHurtHandlers : Handler[] = [];
+    let _onHitHandlers : Handler[] = [];
+
+
+    sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (playerSprite, enemySprite) {
+        if (player.attacking && (playerSprite.x < enemySprite.x == player.lookingRight)) {
+            _onHitHandlers
+            .forEach(h => control.runInParallel(() => h.handler(player, getEnemyFromSprite(enemySprite))));
+        } else {
+            _onHurtHandlers
+            .forEach(h => control.runInParallel(() => h.handler(player, getEnemyFromSprite(enemySprite))));
+        }
+    });
 
     /**
      * Set the scene for the game
      */
     //% weight=100
     //% blockId=retrosetscene p
-    //% block="set scene to %scene1=background_image_picker ||, %scene2=background_image_picker"
+    //% block="set scene to %scenes"
     //% inlineInputMode=inline
     //% expandableArgumentMode=toggle
     export function setScene(scenes: Image[]) {
@@ -98,6 +87,7 @@ namespace retro {
         let camera: scene.RetroCamera = new scene.RetroCamera(scenes.length);
         sc.camera = camera;
         sc.background = new scene.RetroBackground(camera, scenes);
+        enemies = [];
         retroEnabled = true;
     }
 
@@ -124,12 +114,98 @@ namespace retro {
     }
 
     /**
+     * Sets the attacking image of the player
+     */
+    //% weight=10
+    //% blockId=retrosetattackimage block="change player attacking image to %img=screen_image_picker"
+    export function setAttackingPlayerImage(img: Image) {
+        player.setAttackingImage(img)
+    }
+
+    /**
      * Returns the sprite of the player
      */
     //% weight=100
     //% blockId=retrogetplayersprite block="get player sprite"
     export function getPlayerSprite(): Sprite {
         return player.sprite;
+    }
+
+
+    /**
+     * Adds in an enemy
+     */
+    //% weight=10
+    //% blockId=retroaddenemy block="add enemy %img=screen_image_picker"
+    export function addEnemy(img: Image) {
+        let enemy: Enemy = new Enemy(sprites.create(img, SpriteKind.Enemy), enemies);
+        enemy.sprite.x = game.currentScene().camera.offsetX + (Math.randomRange(0, 1) * screen.width);
+        enemy.sprite.y = Math.randomRange(HORIZON_LINE,screen.height);
+        enemy.setTarget(player);
+        enemies.push(enemy);
+    }
+
+    /**
+     * Can free roam
+     */
+    //% weight=10
+    //% blockId=retrocanfreeroam block="can free roam"
+    export function canFreeRoam(): boolean {
+        if (_overrideRoam) {
+            return _overrideRoam;
+        }
+        return !enemies || enemies.length == 0;
+    }
+
+    /**
+     * Run code when the player is hurt by an enemy
+     */
+    //% group="Events"
+    //% weight=10 draggableParameters
+    //% blockId=retroonhurt block="on $player hurt by $enemy"
+    export function onHurt(handler: (player: Player, enemy: Enemy) => void) {
+        _onHurtHandlers.push({
+            handler: handler
+        });
+    }
+    
+    /**
+     * Run code when the player hits an enemy
+     */
+    //% group="Events"
+    //% weight=10 draggableParameters
+    //% blockId=retroonhit block="on $player hits $enemy"
+    export function onHit(handler: (player: Player, enemy: Enemy) => void) {
+        _onHitHandlers.push({
+            handler: handler
+        });
+    }
+
+    /**
+     * Destroy the given enemy
+     */
+    //% weight=10
+    //% blockId=retrodstroyenemy block="destroy $enemy"
+    export function destroyEnemy(enemy: Enemy) {
+        enemy.kill();
+    }
+
+    /**
+     * Set an enemy's target
+     */
+    //% weight=10 
+    //% blockId=retroenemytarget block="have $enemy follow $player"
+    export function setEnemyTarget(enemy: Enemy, player: Player) {
+        enemy.setTarget(player);
+    }
+
+    function getEnemyFromSprite(sprite: Sprite): Enemy {
+        for (let enemy of enemies) {
+            if (enemy.sprite.id == sprite.id) {
+                return enemy
+            }
+        }
+        return null;
     }
 
     /**

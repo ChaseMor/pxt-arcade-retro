@@ -29,7 +29,7 @@ namespace scene {
             const scene = game.currentScene();
 
             // if sprite, follow sprite
-            if (this.sprite) {
+            if (this.sprite && retro.canFreeRoam()) {
                 this.offsetX = this.sprite.x - (screen.width >> 1);
             }
             this.offsetX = Math.clamp(0, screen.width * (this.numOfScenes - 1), this.offsetX);
